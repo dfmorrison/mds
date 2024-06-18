@@ -18,38 +18,35 @@
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import json
-import math
+import numpy as np
+from sklearn.manifold import MDS
 import socketserver
 
 HOST = "0.0.0.0"
 PORT = 9892
 
-def run(data):
-    # TODO stub
-    result = "-".join([data["word"]] * int(data["repeat"]))
-    return {"string": result, "x": math.log(len(result))}
-
 
 class ExampleHandler (socketserver.StreamRequestHandler):
-    # TODO stub
 
     def handle(self):
-        data = self.rfile.readline().decode("utf-8").strip()
-        print(f"# received message '{data}'")
-        data = json.loads(data)
-        print(f"# decoded JSON {data}")
-        data = run(data)
-        print(f"# result is {data}")
-        data = json.dumps(data) + "\n"
-        print(f"# sending '{data}'")
-        self.wfile.write(bytes(data, "utf-8"))
-        self.wfile.flush()
+        line = self.rfile.readline()
+        try:
+            data = json.loads(line.decode("utf-8").strip())
+            mds = MDS(dissimilarity="precomputed",
+                      n_init=data.get("n-init", 4),
+                      max_iter=data.get("max-iter", 300),
+                      eps=data.get("eps", 1e-3))
+            data = json.dumps(mds.fit_transform(data["matrix"]).tolist()) + "\n"
+            self.wfile.write(bytes(data, "utf-8"))
+            self.wfile.flush()
+        except Exception as e:
+            print(e)
 
 
 def main():
     with socketserver.TCPServer((HOST, PORT), ExampleHandler) as server:
-        server.handle_request()
-
+        while True:
+            server.handle_request()
 
 if __name__== "__main__":
     main()

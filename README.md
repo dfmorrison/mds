@@ -20,3 +20,9 @@
 This is a client server arrangement for calling Python multidimensional scaling code from Lisp.
 
 More description TBD.
+
+
+'((0.000 -0.406 -1.000 10.000)
+  (-0.408 0.000 -1.000 -1.000)
+  (-1.000 -1.000 0.000 -0.407)
+  (-10.000 -1.000 -0.407 0.000))
