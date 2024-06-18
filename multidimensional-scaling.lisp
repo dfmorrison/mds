@@ -27,8 +27,6 @@
 
 (in-package :multidimensional-scaling)
 
-(defparameter *sample* )
-
 (defparameter +default-host+ "koalemos.psy.cmu.edu")
 (defparameter +default-port+ 9892)
 
