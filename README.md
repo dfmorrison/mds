@@ -65,7 +65,10 @@ First create a virtual environment, activate it, and do `pip install -r requirem
 Then simply run `python multidimensional-scaling-server.py` in it. You likely will want
 to run it in the background, and under `nohup`.
 
-This has been cursorily tested with Python 3.10, but probably will work with several earlier versions of Python 3, as well as later versions.
+To change the port used pass the `--port` (or `-p`) argument when starting the server.
+
+The server has been cursorily tested with Python 3.10 in Ubuntu Linux 22.04 LTS, but probably will work with several earlier versions of Python 3, as well as later versions,
+and in other forms of Unix. Maybe it’ll work in Windows, too, who knows?
 
 Again there is very little error handling or argument checking, though it does try its best to stay up, writing error messages to standard out.
 
