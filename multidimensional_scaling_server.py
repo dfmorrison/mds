@@ -17,13 +17,13 @@
 # CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+import click
 import json
 import numpy as np
 from sklearn.manifold import MDS
 import socketserver
 
-HOST = "0.0.0.0"
-PORT = 9892
+DEFAULT_PORT = 9892
 
 
 class ExampleHandler (socketserver.StreamRequestHandler):
@@ -43,8 +43,11 @@ class ExampleHandler (socketserver.StreamRequestHandler):
             print(e)
 
 
-def main():
-    with socketserver.TCPServer((HOST, PORT), ExampleHandler) as server:
+@click.command()
+@click.option("--port", "-p", default=DEFAULT_PORT,
+              help="Port over which to communicate with the Lisp client.")
+def main(port):
+    with socketserver.TCPServer(("0.0.0.0", port), ExampleHandler) as server:
         while True:
             server.handle_request()
 
