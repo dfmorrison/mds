@@ -19,26 +19,35 @@
 
 (ql:quickload '(#:alexandria #:usocket #:com.inuoe.jzon))
 
+(defpackage #:multidimensional-scaling
+  (:nicknames #:mds)
+  (:use #:common-lisp #:alexandria #:usocket)
+  (:local-nicknames (#:jzon #:com.inuoe.jzon)))
+
+(in-package #:multidimensional-scaling)
+
 (defparameter +default-host+ "koalemos.psy.cmu.edu")
 (defparameter +default-port+ 9892)
 
 (defun make-request ()
   ;; TODO stub
-  `((:word . ,(format nil "~R" (1+ (random 20))))
-    (:repeat . ,(1+ (random 10)))))
+  (alist-hash-table `((:word . ,(format nil "~R" (1+ (random 20))))
+                      (:repeat . ,(1+ (random 10))))))
 
 (defun run (&key (host +default-host+) (port +default-port+))
   ;; TODO stub
-  (let ((socket (usocket:socket-connect +host+ +port+)))
+  (let ((socket (usocket:socket-connect host port)))
+    (:_ socket)
     (unwind-protect
          (let ((stream (usocket:socket-stream socket))
                (data (make-request)))
+           (:_ stream data0
            (format t ";; request: ~S~%" data)
-           (setf data (json:encode-json-to-string data))
+           (setf data (jzon:stringify data))
            (format t ";; sending: ~S~%" data)
            (format stream "~A~%" data)
            (finish-output stream)
            (setf data (read-line stream))
            (format t ";; received: ~S~%" data)
-           (format t ";; decoded response: ~S~%" (json:decode-json-from-string data)))
+           (format t ";; decoded response: ~S~%" (jzon:parse data)))
       (usocket:socket-close socket))))
