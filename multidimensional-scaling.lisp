@@ -60,7 +60,7 @@
                              (host +default-host+)
                              (port +default-port+))
   (unless (square-matrix-p similarities)
-    (error "~S does not appear to represent a square matrix of reals represented as a list of lists"
+    (error "~S does not appear to be a square matrix of reals represented as a list of lists"
            similarities))
   (let* ((dimension (length similarities))
          (matrix (make-array (list dimension dimension) :initial-contents similarities))
