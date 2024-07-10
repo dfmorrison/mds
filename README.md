@@ -9,8 +9,17 @@ By default they communicate using port 9892.
 
 With QuickLisp installed, load the file `multidimensional-scaling.lisp.`
 
-Then call the Lisp function `mds:scale`. This function takes one required argument, a list of lists of real numbers representing a square matrix, in row major order.
+Then call the Lisp function `mds:scale`. This function takes one required argument, a list of lists of real numbers representing a matrix, in row major order.
 It also takes sseveral optional keyword arguments:
+
+* `precomputed`, a generalized Boolean, defaulting to true. If true the required matrix argument should be symmetrical,
+or at least close to. If it is not symmetrical it is forced into that form by replacing both
+elements of each of the  corresponding pairs of elements on opposite sides of the main diagonal by their means. This is sensible if the values are
+reasonably close, perhaps only differing because of round off errors. If they are radically different the results may make no sense.
+The values of the elements of this matrix should be ACT-R similarity values in the range [-1, 0]. If, after any necessary averaging of pairs,
+they are outside this range then, after conversion of [0, 1] dissimilarities they are silently replaced by 0 or 1 as appropriate.
+If `precomputed` is false the require matrix argument instead of representing similarities represents actually points whose distances in Euclidean space
+are used for computing dissimilarities.
 
 * `:initializations`, if supplied should be a positive integer, which is the number of distinct runs with unique random states that are made, the best result being returned;
   it defaults to `4`
@@ -23,13 +32,7 @@ It also takes sseveral optional keyword arguments:
 
 * `:port`, if supplied it should be a positive integer, the port to use for communicating with the server; it defaults to `9892`.
 
-The required matrix argument should be symmetrical, or at least close to. If it is not symmetrical it is forced into that form by replacing both
-elements of each of the  corresponding pairs of elements on opposite sides of the main diagonal by their means. This is sensible if the values are
-reasonably close, perhaps only differing because of round off errors. If they are radically different the results may make no sense.
-The values of the elements of this matrix should be ACT-R similarity values in the range [-1, 0]. If, after any necessary averaging of pairs,
-they are outside this range then, after conversion of [0, 1] dissimilarities they are silently replaced by 0 or 1 as appropriate.
-
-The return value is a list of two element lists, each sublist representing one point in the reduced space.
+The return value of `mods:scaleis` is a list of two element lists, each sublist representing one point in the reduced space.
 
 For example, calling
 
@@ -46,6 +49,35 @@ returns a value something like
      (-0.2200631251367813d0 -0.04176972620134434d0))
 
 The actual numbers returned will vary with each call since the MDS process is stochastic.
+
+Or calling
+
+    (mds:scale '((1 1 1 0 0)
+                 (1 1 0 0 0)
+                 (1 0 1 0 0)
+                 (0 1 1 0 0)
+                 (1 0 0 0 0)
+                 (0 1 0 0 0)
+                 (0 0 1 0 0)
+                 (0 0 0 1 1)
+                 (0 0 0 1 0)
+                 (0 0 0 0 1))
+               :precomputed nil
+               :maximum-iterations 500
+               :initializations 10)
+
+returns a value something like
+
+    ((-0.5501639624956356d0 1.0108758186470235d0)
+     (-0.9522441562359563d0 0.3132160174223035d0)
+     (0.5811797031968194d0 0.8049543273669576d0)
+     (-0.07713221124484697d0 0.9218711302622995d0)
+     (-0.03899308943660766d0 -0.0530499310662791d0)
+     (-0.827239249878889d0 -0.23823744245914036d0)
+     (0.8095862591707574d0 0.3129144142368725d0)
+     (0.416003751063655d0 -1.3303417251542586d0)
+     (0.8348799947453993d0 -0.6972032778907892d0)
+     (-0.1958770388846961d0 -1.044999331364989d0))
 
 There is little error checking or handling. If bad arguments are passed or there is some other error tears may result.
 Given the use we expect to make of this it does not seem worth investing in armor plating.
