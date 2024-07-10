@@ -30,14 +30,16 @@
 (defparameter +default-host+ "koalemos.psy.cmu.edu")
 (defparameter +default-port+ 9892)
 
-(defun square-matrix-p (list)
+(defun matrixp (list)
   (and (listp list)
-       (let ((dimension (length list)))
-         (every (lambda (sublist)
-                  (and (listp sublist)
-                       (eql (length sublist) dimension)
-                       (every #'realp sublist)))
-                list))))
+       (listp (first list))
+       (let ((dimension (length (first list))))
+         (and (> dimension 0)
+              (every (lambda (sublist)
+                       (and (listp sublist)
+                            (eql (length sublist) dimension)
+                            (every #'realp sublist)))
+                     list)))))
 
 (defun symmetricize (square-array &key (minimum most-negative-long-float)
                                     (maximum most-positive-long-float))
@@ -54,26 +56,37 @@
             (setf (aref square-array j i) mean))))))
   square-array)
 
-(defun scale (similarities &key (initializations 4)
-                             (maximum-iterations 300)
-                             (tolerance 1.0e-3)
-                             (host +default-host+)
-                             (port +default-port+))
-  (unless (square-matrix-p similarities)
-    (error "~S does not appear to be a square matrix of reals represented as a list of lists"
-           similarities))
-  (let* ((dimension (length similarities))
-         (matrix (make-array (list dimension dimension) :initial-contents similarities))
-         (message (plist-hash-table `(matrix ,matrix
+(defun scale (matrix &key (precomputed t)
+                       (initializations 4)
+                       (maximum-iterations 300)
+                       (tolerance 1.0e-3)
+                       (host +default-host+)
+                       (port +default-port+))
+  (unless (matrixp matrix)
+    (error "~S does not appear to be a matrix of reals represented as a list of lists"
+           matrix))
+  (check-type initializations (integer 1))
+  (check-type maximum-iterations (integer 1))
+  (check-type tolerance (real 0))
+  (check-type port (integer 1))
+  (let* ((array (make-array (list (length matrix) (length (first matrix)))
+                            :initial-contents matrix))
+         (message (plist-hash-table `(matrix ,array
+                                      dissimilarity ,(if precomputed "precomputed" "euclidean")
                                       n-init ,initializations
                                       max-iter ,maximum-iterations
                                       eps ,tolerance))))
-    ;; convert ACT-R similarities to [0, 1] dissimilarities
-    (dotimes (i dimension)
-      (dotimes (j dimension)
-        (unless (zerop (aref matrix i j))
-          (setf (aref matrix i j) (- (aref matrix i j))))))
-    (symmetricize matrix :minimum 0 :maximum 1)
+    (when precomputed
+      (unless (= (length matrix) (length (first matrix)))
+        (error "~S does not appear to be a square matrix of reals represented as a list of lists"
+               matrix))
+      (let ((dimension (array-dimension array 0)))
+        ;; convert ACT-R matrix to [0, 1] dissimilarities
+        (dotimes (i dimension)
+          (dotimes (j dimension)
+            (unless (zerop (aref array i j))
+              (setf (aref array i j) (- (aref array i j))))))
+        (symmetricize array :minimum 0 :maximum 1)))
     (let ((socket (socket-connect host port)))
       (unwind-protect
            (let ((stream (socket-stream socket)))

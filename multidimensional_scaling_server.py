@@ -32,7 +32,7 @@ class ExampleHandler (socketserver.StreamRequestHandler):
         line = self.rfile.readline()
         try:
             data = json.loads(line.decode("utf-8").strip())
-            mds = MDS(dissimilarity="precomputed",
+            mds = MDS(dissimilarity=data.get("dissimilarity", "precomputed"),
                       n_init=data.get("n-init", 4),
                       max_iter=data.get("max-iter", 300),
                       eps=data.get("eps", 1e-3))
